@@ -1,0 +1,962 @@
+/* Variáveis de Cores */
+:root {
+    /* Default Theme: Dark Neon */
+    --bg-dark: #0D0D0D;
+    --bg-gradient-start: #1a1a1a;
+    --neon-blue: #5CE1E6;
+    --neon-green: #22C55E;
+    --neon-purple: #7C3AED;
+    --text-light: #E0E0E0;
+    --text-medium: #A0A0A0;
+    --border-color: rgba(92, 225, 230, 0.3);
+    --modal-border-color: var(--neon-purple);
+    --modal-shadow-color: var(--neon-purple);
+    --planet-text-color: var(--bg-dark);
+}
+
+/* Temas */
+body.theme-blue-galaxy {
+    --bg-dark: #0A0A1A;
+    --bg-gradient-start: #10102A;
+    --neon-blue: #87CEEB; /* Light Sky Blue */
+    --neon-green: #4682B4; /* Steel Blue */
+    --neon-purple: #6A5ACD; /* Slate Blue */
+    --text-light: #E0E0FF;
+    --text-medium: #A0A0C0;
+    --border-color: rgba(135, 206, 235, 0.3);
+    --modal-border-color: var(--neon-blue);
+    --modal-shadow-color: var(--neon-blue);
+    --planet-text-color: #0A0A1A;
+}
+
+body.theme-green-orbit {
+    --bg-dark: #0A1A0A;
+    --bg-gradient-start: #102A10;
+    --neon-blue: #90EE90; /* Light Green */
+    --neon-green: #32CD32; /* Lime Green */
+    --neon-purple: #6B8E23; /* Olive Drab */
+    --text-light: #E0FFE0;
+    --text-medium: #A0C0A0;
+    --border-color: rgba(144, 238, 144, 0.3);
+    --modal-border-color: var(--neon-green);
+    --modal-shadow-color: var(--neon-green);
+    --planet-text-color: #0A1A0A;
+}
+
+
+/* Reset Básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    overflow: hidden; /* Para controlar o universo */
+    transition: background-color 0.5s ease; /* Transição suave para o tema */
+}
+
+/* Páginas */
+.page {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.page.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Landing Page */
+#landing-page {
+    background: radial-gradient(circle at center, var(--bg-gradient-start) 0%, var(--bg-dark) 100%);
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.landing-content {
+    text-align: center;
+    max-width: 900px;
+    width: 90%;
+    margin-top: 50px;
+}
+
+.logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4em;
+    color: var(--neon-blue);
+    text-shadow: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue);
+    margin-bottom: 20px;
+    animation: pulse-glow 2s infinite alternate;
+}
+
+.headline {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
+    color: var(--text-light);
+    margin-bottom: 15px;
+}
+
+.description {
+    font-size: 1.1em;
+    color: var(--text-medium);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.cta-button {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3em;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px var(--neon-green);
+}
+
+.cta-button:hover {
+    background-color: var(--neon-blue);
+    box-shadow: 0 0 20px var(--neon-blue);
+    transform: translateY(-3px);
+}
+
+.preview-universe {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    margin: 50px auto;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.preview-planet {
+    position: absolute;
+    border-radius: 50%;
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    animation: orbit 15s infinite linear;
+}
+
+.preview-planet.planet-blue {
+    width: 50px; height: 50px; background-color: var(--neon-blue); top: 20%; left: 10%;
+    animation-delay: 0s;
+}
+.preview-planet.planet-green {
+    width: 40px; height: 40px; background-color: var(--neon-green); top: 60%; left: 70%;
+    animation-delay: 5s;
+}
+.preview-planet.planet-purple {
+    width: 60px; height: 60px; background-color: var(--neon-purple); top: 40%; left: 40%;
+    animation-delay: 10s;
+}
+
+.preview-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    animation: move-particles 60s linear infinite;
+}
+
+.features-section {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.feature-card {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 25px;
+    width: 280px;
+    text-align: left;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-blue);
+}
+
+.feature-card h3 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+    margin-bottom: 10px;
+    font-size: 1.3em;
+}
+
+.feature-card p {
+    color: var(--text-medium);
+    font-size: 0.95em;
+}
+
+.landing-footer {
+    margin-top: auto; /* Empurra para o final da página */
+    color: var(--text-medium);
+    font-size: 0.8em;
+}
+
+/* Universo Personalizável */
+#universe-page {
+    background: radial-gradient(circle at center, var(--bg-gradient-start) 0%, var(--bg-dark) 100%);
+    position: relative;
+    overflow: hidden;
+    display: block; /* Override flex para permitir posicionamento absoluto dos planetas */
+}
+
+.top-bar {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 25px;
+    display: flex;
+    gap: 15px;
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap; /* Para responsividade */
+    justify-content: center; /* Para responsividade */
+}
+
+.top-bar-btn {
+    background: none;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.top-bar-btn:hover {
+    background-color: var(--neon-blue);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+#galaxy-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: move-particles 120s linear infinite;
+}
+
+/* Planetas */
+.planet {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    cursor: grab;
+    display: flex;
+    flex-direction: column; /* Para ícone e texto */
+    justify-content: center;
+    align-items: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8em;
+    text-align: center;
+    color: var(--planet-text-color); /* Cor do texto do planeta */
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    transition: box-shadow 0.3s ease, transform 0.1s ease;
+    z-index: 10; /* Para ficar acima do fundo */
+}
+
+.planet .icon {
+    font-size: 1.8em; /* Tamanho do ícone dentro do planeta */
+    margin-bottom: 5px;
+}
+
+.planet:active {
+    cursor: grabbing;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+}
+
+.planet.planet-blue { background-color: var(--neon-blue); }
+.planet.planet-green { background-color: var(--neon-green); }
+.planet.planet-purple { background-color: var(--neon-purple); }
+
+/* Janelas de Ferramentas */
+.tool-window {
+    position: absolute;
+    background-color: rgba(13, 13, 13, 0.95);
+    border: 1px solid var(--neon-blue);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(92, 225, 230, 0.5);
+    min-width: 300px;
+    min-height: 200px;
+    resize: both; /* Permite redimensionar */
+    overflow: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tool-window.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.tool-window-header {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px 15px;
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--neon-blue);
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+}
+
+.tool-window-header .close-btn {
+    background: none;
+    border: none;
+    color: var(--neon-blue);
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.tool-window-header .close-btn:hover {
+    color: var(--neon-green);
+}
+
+.tool-window-content {
+    padding: 15px;
+    flex-grow: 1;
+    color: var(--text-light);
+}
+
+/* Estilos específicos para ferramentas (exemplo) */
+.tool-window-content.todo-list ul {
+    list-style: none;
+}
+.tool-window-content.todo-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.tool-window-content.todo-list input[type="checkbox"] {
+    margin-right: 10px;
+    accent-color: var(--neon-green);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+.tool-window-content.todo-list input[type="text"] {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    padding: 8px;
+    border-radius: 4px;
+    width: calc(100% - 20px);
+    margin-top: 10px;
+}
+.tool-window-content.todo-list .add-task-btn {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+.tool-window-content.todo-list .add-task-btn:hover {
+    background-color: var(--neon-blue);
+}
+.tool-window-content.todo-list .delete-task-btn {
+    background: none;
+    border: none;
+    color: var(--text-medium);
+    font-size: 1.2em;
+    margin-left: auto;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+.tool-window-content.todo-list .delete-task-btn:hover {
+    color: red;
+}
+
+/* Pomodoro */
+.tool-window-content.pomodoro {
+    text-align: center;
+}
+.tool-window-content.pomodoro #pomodoro-timer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3em;
+    color: var(--neon-green);
+    margin: 20px 0;
+    text-shadow: 0 0 10px var(--neon-green);
+}
+.tool-window-content.pomodoro .pomodoro-btn {
+    background-color: var(--neon-purple);
+    color: var(--bg-dark);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.tool-window-content.pomodoro .pomodoro-btn:hover {
+    background-color: var(--neon-blue);
+}
+
+/* Calculadora */
+.tool-window-content.calculator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.tool-window-content.calculator .calc-display {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1.8em;
+    text-align: right;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    border-radius: 5px;
+}
+.tool-window-content.calculator .calc-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 90%;
+}
+.tool-window-content.calculator .calc-buttons button {
+    background-color: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    padding: 15px;
+    font-size: 1.2em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.tool-window-content.calculator .calc-buttons button:hover {
+    background-color: rgba(255,255,255,0.2);
+    border-color: var(--neon-green);
+}
+.tool-window-content.calculator .calc-buttons button.op {
+    background-color: var(--neon-purple);
+    color: var(--bg-dark);
+}
+.tool-window-content.calculator .calc-buttons button.op:hover {
+    background-color: var(--neon-blue);
+}
+.tool-window-content.calculator .calc-buttons button.eq {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    grid-column: span 2;
+}
+.tool-window-content.calculator .calc-buttons button.eq:hover {
+    background-color: var(--neon-blue);
+}
+
+/* Gerenciador de Arquivos */
+.tool-window-content.file-manager .file-list {
+    list-style: none;
+    padding: 0;
+}
+.tool-window-content.file-manager .file-item {
+    background-color: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.tool-window-content.file-manager .file-item a {
+    color: var(--neon-blue);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.tool-window-content.file-manager .file-item a:hover {
+    color: var(--neon-green);
+}
+.tool-window-content.file-manager .file-item .delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-medium);
+    cursor: pointer;
+    font-size: 1.2em;
+    transition: color 0.2s ease;
+}
+.tool-window-content.file-manager .file-item .delete-btn:hover {
+    color: red;
+}
+.tool-window-content.file-manager .add-file-input {
+    display: flex;
+    gap: 5px;
+    margin-top: 15px;
+}
+.tool-window-content.file-manager .add-file-input input {
+    flex-grow: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    padding: 8px;
+    border-radius: 4px;
+}
+.tool-window-content.file-manager .add-file-input button {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.tool-window-content.file-manager .add-file-input button:hover {
+    background-color: var(--neon-blue);
+}
+
+/* Gráficos de Progresso */
+.tool-window-content.progress-charts {
+    text-align: center;
+}
+.tool-window-content.progress-charts .chart-placeholder {
+    background: rgba(255,255,255,0.1);
+    border: 1px dashed var(--neon-purple);
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    margin-top: 15px;
+    color: var(--text-medium);
+}
+
+/* Conversores */
+.tool-window-content.converters select,
+.tool-window-content.converters input {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    padding: 8px;
+    border-radius: 4px;
+}
+.tool-window-content.converters select option {
+    background-color: var(--bg-dark); /* Fundo das opções do select */
+    color: var(--text-light);
+}
+
+
+/* Modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 2000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--bg-dark);
+    margin: auto;
+    padding: 30px;
+    border: 1px solid var(--modal-border-color); /* Usa variável de tema */
+    border-radius: 10px;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+    box-shadow: 0 0 30px var(--modal-shadow-color); /* Usa variável de tema */
+}
+
+.modal-content h2 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--modal-border-color); /* Usa variável de tema */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-content .close-button {
+    color: var(--modal-border-color); /* Usa variável de tema */
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.modal-content .close-button:hover,
+.modal-content .close-button:focus {
+    color: var(--neon-green);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#available-tools-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px; /* Para scrollbar */
+}
+
+.tool-option {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--modal-border-color); /* Usa variável de tema */
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-option:hover {
+    background-color: rgba(124, 58, 237, 0.2); /* Pode ser ajustado por tema */
+    border-color: var(--neon-purple); /* Pode ser ajustado por tema */
+    box-shadow: 0 0 15px var(--neon-purple); /* Pode ser ajustado por tema */
+    transform: translateY(-3px);
+}
+
+.tool-option .icon {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: var(--neon-purple); /* Pode ser ajustado por tema */
+}
+
+.tool-option h4 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9em;
+    color: var(--text-light);
+}
+
+/* Color Palette Modal */
+.color-palette {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.color-option {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.planet-blue { background-color: var(--neon-blue); }
+.color-option.planet-green { background-color: var(--neon-green); }
+.color-option.planet-purple { background-color: var(--neon-purple); }
+
+.color-option.selected {
+    border-color: var(--text-light); /* Borda branca para indicar seleção */
+    box-shadow: 0 0 15px currentColor;
+}
+
+/* Theme Options Modal */
+.theme-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.theme-option {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 150px;
+}
+
+.theme-option:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.theme-option.selected {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 20px var(--neon-green);
+}
+
+.theme-preview {
+    width: 100%;
+    height: 80px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.theme-preview.dark-neon-preview {
+    background: radial-gradient(circle at center, #1a1a1a 0%, #0D0D0D 100%);
+    border-color: #5CE1E6; /* Cor específica para preview */
+}
+.theme-preview.blue-galaxy-preview {
+    background: radial-gradient(circle at center, #10102A 0%, #0A0A1A 100%);
+    border-color: #87CEEB; /* Cor específica para preview */
+}
+.theme-preview.green-orbit-preview {
+    background: radial-gradient(circle at center, #102A10 0%, #0A1A0A 100%);
+    border-color: #90EE90; /* Cor específica para preview */
+}
+
+.theme-option h4 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--text-light);
+    font-size: 1em;
+}
+
+/* Saved Galaxies Modal */
+.save-galaxy-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.save-galaxy-input input {
+    flex-grow: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-purple);
+    color: var(--text-light);
+    padding: 8px;
+    border-radius: 4px;
+}
+.save-galaxy-input button {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.save-galaxy-input button:hover {
+    background-color: var(--neon-blue);
+}
+
+.saved-list {
+    list-style: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.saved-list-item {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+.saved-list-item:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.saved-list-item span {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-light);
+    flex-grow: 1;
+}
+.saved-list-item .actions button {
+    background: none;
+    border: none;
+    color: var(--neon-blue);
+    cursor: pointer;
+    font-size: 1em;
+    margin-left: 10px;
+    transition: color 0.2s ease;
+}
+.saved-list-item .actions button:hover {
+    color: var(--neon-green);
+}
+.saved-list-item .actions button.delete-btn {
+    color: var(--text-medium);
+}
+.saved-list-item .actions button.delete-btn:hover {
+    color: red;
+}
+
+
+/* Context Menu */
+.context-menu {
+    display: none;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--neon-blue);
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(92, 225, 230, 0.5);
+    z-index: 2000;
+    padding: 5px 0;
+}
+
+.context-menu-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.context-menu-item:hover {
+    background-color: var(--neon-blue);
+    color: var(--bg-dark);
+}
+
+/* Animações */
+@keyframes pulse-glow {
+    0% { text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue); }
+    100% { text-shadow: 0 0 20px var(--neon-blue), 0 0 40px var(--neon-blue); }
+}
+
+@keyframes orbit {
+    0% { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+
+@keyframes move-particles {
+    from { background-position: 0 0; }
+    to { background-position: 100% 100%; }
+}
+
+/* Responsividade Básica */
+@media (max-width: 768px) {
+    .logo {
+        font-size: 3em;
+    }
+    .headline {
+        font-size: 1.8em;
+    }
+    .description {
+        font-size: 1em;
+    }
+    .cta-button {
+        font-size: 1.1em;
+        padding: 12px 30px;
+    }
+    .features-section {
+        flex-direction: column;
+        align-items: center;
+    }
+    .feature-card {
+        width: 90%;
+        max-width: 350px;
+    }
+    .top-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 90%;
+        top: 10px;
+        padding: 10px;
+        gap: 8px;
+    }
+    .top-bar-btn {
+        font-size: 0.75em;
+        padding: 6px 10px;
+    }
+    .planet {
+        width: 60px;
+        height: 60px;
+        font-size: 0.7em;
+    }
+    /* Janelas em Mobile: Modal de tela cheia */
+    .tool-window {
+        min-width: 90%;
+        min-height: 70vh;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8); /* Ajuste para centralizar */
+        resize: none; /* Desabilita redimensionamento manual em mobile */
+        position: fixed; /* Garante que fique na viewport */
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+    .tool-window.active {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    #available-tools-list {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+    .color-palette {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .color-option {
+        width: 40px;
+        height: 40px;
+    }
+    .theme-options {
+        gap: 10px;
+    }
+    .theme-option {
+        width: 120px;
+        padding: 10px;
+    }
+    .theme-option h4 {
+        font-size: 0.8em;
+    }
+    .save-galaxy-input {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
