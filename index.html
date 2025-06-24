@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIVERSYN - Seu Universo de Estudo Personalizado</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Landing Page -->
+    <div id="landing-page" class="page active">
+        <div class="landing-content">
+            <h1 class="logo">UNIVERSYN</h1>
+            <h2 class="headline">Seu Universo de Estudo Personalizado</h2>
+            <p class="description">Organize sua rotina acadêmica em um ecossistema visual e interativo. Crie sua própria galáxia de produtividade!</p>
+            <button id="enter-universe-btn" class="cta-button">ENTRAR NO UNIVERSO</button>
+            <div class="preview-universe">
+                <!-- Placeholder para o preview interativo -->
+                <div class="preview-planet planet-blue"></div>
+                <div class="preview-planet planet-green"></div>
+                <div class="preview-planet planet-purple"></div>
+                <div class="preview-particles"></div>
+            </div>
+            <div class="features-section">
+                <div class="feature-card">
+                    <h3>Autonomia Total</h3>
+                    <p>Escolha suas ferramentas e organize seu espaço.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Personalização</h3>
+                    <p>Cores, posições e layouts ao seu gosto.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Multi-ferramenta</h3>
+                    <p>Trabalhe com várias janelas simultaneamente.</p>
+                </div>
+            </div>
+        </div>
+        <footer class="landing-footer">
+            <p>&copy; 2023 UNIVERSYN. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <!-- Universo Personalizável -->
+    <div id="universe-page" class="page">
+        <div class="top-bar">
+            <button id="reset-galaxy-btn" class="top-bar-btn">Resetar Galáxia</button>
+            <button id="add-planet-btn" class="top-bar-btn">Adicionar Planeta</button>
+            <button id="toggle-animations-btn" class="top-bar-btn">Animações ON/OFF</button>
+            <button id="change-theme-btn" class="top-bar-btn">Mudar Tema</button>
+            <button id="save-galaxy-btn" class="top-bar-btn">Salvar Galáxia</button> <!-- Novo -->
+            <button id="load-galaxy-btn" class="top-bar-btn">Carregar Galáxia</button> <!-- Novo -->
+            <button id="back-to-landing-btn" class="top-bar-btn">Voltar</button>
+        </div>
+        <div id="galaxy-container">
+            <!-- Planetas serão injetados aqui via JavaScript -->
+        </div>
+
+        <!-- Modal para Adicionar Planeta -->
+        <div id="add-planet-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Adicionar Nova Ferramenta</h2>
+                <div id="available-tools-list">
+                    <!-- Ferramentas disponíveis serão injetadas aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Mudar Cor do Planeta -->
+        <div id="change-color-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Mudar Cor do Planeta</h2>
+                <div class="color-palette">
+                    <div class="color-option planet-blue" data-color="planet-blue"></div>
+                    <div class="color-option planet-green" data-color="planet-green"></div>
+                    <div class="color-option planet-purple" data-color="planet-purple"></div>
+                    <!-- Adicione mais cores se desejar -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Mudar Tema -->
+        <div id="change-theme-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Mudar Tema Visual</h2>
+                <div class="theme-options">
+                    <!-- Temas serão injetados aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Gerenciar Galáxias Salvas -->
+        <div id="manage-galaxies-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Minhas Galáxias Salvas</h2>
+                <div class="save-galaxy-input">
+                    <input type="text" id="save-galaxy-name" placeholder="Nome da nova galáxia">
+                    <button id="confirm-save-galaxy-btn">Salvar Atual</button>
+                </div>
+                <ul id="saved-galaxies-list" class="saved-list">
+                    <!-- Galáxias salvas serão injetadas aqui -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Context Menu (Botão Direito) -->
+        <div id="context-menu" class="context-menu">
+            <div class="context-menu-item" data-action="open">Abrir Ferramenta</div>
+            <div class="context-menu-item" data-action="change-color">Mudar Cor</div>
+            <div class="context-menu-item" data-action="remove">Remover Planeta</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
