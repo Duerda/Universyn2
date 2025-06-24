@@ -1,277 +1,507 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- Elementos DOM ---
-    const landingPage = document.getElementById('landing-page');
-    const universePage = document.getElementById('universe-page');
-    const enterUniverseBtn = document.getElementById('enter-universe-btn');
-    const backToLandingBtn = document.getElementById('back-to-landing-btn');
-    const galaxyContainer = document.getElementById('galaxy-container');
-    const addPlanetBtn = document.getElementById('add-planet-btn');
-    const addPlanetModal = document.getElementById('add-planet-modal');
-    const closeModalBtnAddPlanet = addPlanetModal.querySelector('.close-button');
-    const availableToolsList = document.getElementById('available-tools-list');
-    const contextMenu = document.getElementById('context-menu');
-    const resetGalaxyBtn = document.getElementById('reset-galaxy-btn');
-    const toggleAnimationsBtn = document.getElementById('toggle-animations-btn');
+/* Variáveis de Cores */
+:root {
+    /* Default Theme: Dark Neon */
+    --bg-dark: #0D0D0D;
+    --bg-gradient-start: #1a1a1a;
+    --neon-blue: #00BFFF; /* Deep Sky Blue */
+    --neon-green: #32CD32; /* Lime Green */
+    --neon-purple: #8A2BE2; /* Blue Violet */
+    --text-light: #E0E0E0;
+    --text-medium: #A0A0A0;
+    --border-color: rgba(92, 225, 230, 0.5);
+    --modal-border-color: var(--neon-purple);
+    --modal-shadow-color: var(--neon-purple);
+    --planet-text-color: var(--bg-dark);
+}
 
-    const changeColorModal = document.getElementById('change-color-modal');
-    const closeModalBtnChangeColor = changeColorModal.querySelector('.close-button');
-    const colorPalette = document.querySelector('.color-palette');
+/* Temas */
+body.theme-blue-galaxy {
+    --bg-dark: #0A0A1A;
+    --bg-gradient-start: #10102A;
+    --neon-blue: #87CEEB; /* Light Sky Blue */
+    --neon-green: #4682B4; /* Steel Blue */
+    --neon-purple: #6A5ACD; /* Slate Blue */
+    --text-light: #E0E0FF;
+    --text-medium: #A0A0C0;
+    --border-color: rgba(135, 206, 235, 0.5);
+    --modal-border-color: var(--neon-blue);
+    --modal-shadow-color: var(--neon-blue);
+    --planet-text-color: #0A0A1A;
+}
 
-    const changeThemeBtn = document.getElementById('change-theme-btn');
-    const changeThemeModal = document.getElementById('change-theme-modal');
-    const closeModalBtnChangeTheme = changeThemeModal.querySelector('.close-button');
-    const themeOptionsContainer = document.querySelector('.theme-options');
+body.theme-green-orbit {
+    --bg-dark: #0A1A0A;
+    --bg-gradient-start: #102A10;
+    --neon-blue: #90EE90; /* Light Green */
+    --neon-green: #32CD32; /* Lime Green */
+    --neon-purple: #6B8E23; /* Olive Drab */
+    --text-light: #E0FFE0;
+    --text-medium: #A0C0A0;
+    --border-color: rgba(144, 238, 144, 0.5);
+    --modal-border-color: var(--neon-green);
+    --modal-shadow-color: var(--neon-green);
+    --planet-text-color: #0A1A0A;
+}
 
-    const saveGalaxyBtn = document.getElementById('save-galaxy-btn');
-    const loadGalaxyBtn = document.getElementById('load-galaxy-btn');
-    const manageGalaxiesModal = document.getElementById('manage-galaxies-modal');
-    const closeModalBtnManageGalaxies = manageGalaxiesModal.querySelector('.close-button');
-    const saveGalaxyNameInput = document.getElementById('save-galaxy-name');
-    const confirmSaveGalaxyBtn = document.getElementById('confirm-save-galaxy-btn');
-    const savedGalaxiesList = document.getElementById('saved-galaxies-list');
+/* Reset Básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    // --- Variáveis de Estado ---
-    let activeToolWindow = null;
-    let isDraggingPlanet = false;
-    let currentDraggedPlanet = null;
-    let initialPlanetX, initialPlanetY;
-    let initialMouseX, initialMouseY;
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    overflow: hidden; /* Para controlar o universo */
+    transition: background-color 0.5s ease; /* Transição suave para o tema */
+}
 
-    let isDraggingWindow = false;
-    let currentDraggedWindow = null;
-    let initialWindowX, initialWindowY;
-    let initialWindowMouseX, initialWindowMouseY;
+/* Páginas */
+.page {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
 
-    let planetCounter = 0;
-    let targetPlanetForColorChange = null;
+.page.active {
+    opacity: 1;
+    visibility: visible;
+}
 
-    // --- Dados das Ferramentas ---
-    const allTools = [
-        { id: 'todo-list', name: 'To-do List', icon: '📝', defaultColor: 'planet-blue', content: '<div class="todo-list"><h3>Minhas Tarefas</h3><div style="display:flex; margin-bottom:10px;"><input type="text" id="new-todo-input" placeholder="Adicionar nova tarefa..." style="flex-grow:1;"><button class="add-task-btn">Add</button></div><ul id="todo-items"></ul></div>' },
-        { id: 'pomodoro', name: 'Pomodoro', icon: '⏰', defaultColor: 'planet-green', content: '<div class="pomodoro"><h3>Cronômetro Pomodoro</h3><p id="pomodoro-timer">25:00</p><div class="pomodoro-controls"><button class="pomodoro-btn" data-action="start">Iniciar</button><button class="pomodoro-btn" data-action="pause">Pausar</button><button class="pomodoro-btn" data-action="reset">Resetar</button></div></div>' },
-        { id: 'notes', name: 'Notas Rápidas', icon: '🗒️', defaultColor: 'planet-purple', content: '<div class="notes"><textarea id="notes-textarea" placeholder="Escreva suas notas aqui..." style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:1px solid var(--neon-purple); color:var(--text-light); padding:10px; border-radius:4px;"></textarea></div>' },
-        { id: 'calculator', name: 'Calculadora', icon: '🧮', defaultColor: 'planet-blue', content: '<div class="calculator"><h3>Calculadora</h3><input type="text" class="calc-display" value="0" readonly><div class="calc-buttons"><button>C</button><button>&larr;</button><button class="op">%</button><button class="op">/</button><button>7</button><button>8</button><button>9</button><button class="op">*</button><button>4</button><button>5</button><button>6</button><button class="op">-</button><button>1</button><button>2</button><button>3</button><button class="op">+</button><button class="zero">0</button><button>.</button><button class="eq">=</button></div></div>' },
-        { id: 'file-manager', name: 'Gerenciador de Arquivos', icon: '📁', defaultColor: 'planet-green', content: '<div class="file-manager"><h3>Meus Arquivos</h3><ul class="file-list"></ul><div class="add-file-input"><input type="text" id="new-file-name" placeholder="Nome do arquivo/link"><button id="add-file-btn">Add</button></div></div>' },
-        { id: 'progress-charts', name: 'Gráficos de Progresso', icon: '📊', defaultColor: 'planet-purple', content: '<div class="progress-charts"><h3>Meu Progresso</h3><div class="chart-placeholder"><span>Gráfico de progresso (placeholder)</span></div><p style="margin-top:15px; color:var(--text-medium);">Dados de tarefas e pomodoro seriam exibidos aqui.</p></div>' },
-        { id: 'converters', name: 'Conversores', icon: '🔄', defaultColor: 'planet-blue', content: '<div class="converters"><h3>Conversores</h3><select id="converter-type" style="width:100%; padding:8px; margin-bottom:10px; background:rgba(255,255,255,0.1); border:1px solid var(--neon-blue); color:var(--text-light); border-radius:4px;"><option value="temp">Temperatura</option><option value="weight">Peso</option><option value="currency">Moeda (placeholder)</option></select><input type="number" id="converter-input" placeholder="Valor" style="width:100%; padding:8px; margin-bottom:10px; background:rgba(255,255,255,0.1); border:1px solid var(--neon-blue); color:var(--text-light); border-radius:4px;"><p>Resultado: <span id="converter-result" style="color:var(--neon-green);"></span></p></div>' },
-        { id: 'mind-map', name: 'Mapa Mental', icon: '🧠', defaultColor: 'planet-green', content: '<div class="mind-map"><h3>Mapa Mental Visual</h3><p style="color:var(--text-medium);">Crie conexões visuais para suas ideias.</p><div style="background:rgba(255,255,255,0.1); height:150px; border-radius:4px; display:flex; justify-content:center; align-items:center;"><span>Área de desenho (placeholder)</span></div></div>' },
-        { id: 'flashcards', name: 'Flashcards', icon: '🎴', defaultColor: 'planet-purple', content: '<div class="flashcards"><h3>Flashcards Inteligentes</h3><p style="color:var(--text-medium);">Revisão espaçada para memorização.</p><div style="background:rgba(255,255,255,0.1); height:100px; border-radius:4px; display:flex; justify-content:center; align-items:center;"><span>Card (placeholder)</span></div><div style="display:flex; justify-content:space-around; margin-top:10px;"><button class="pomodoro-btn">Próximo</button><button class="pomodoro-btn">Revisar</button></div></div>' },
-        { id: 'daily-journal', name: 'Diário', icon: '✍️', defaultColor: 'planet-blue', content: '<div class="daily-journal"><h3>Diário Pessoal</h3><textarea id="journal-entry" placeholder="Escreva sobre seu dia..." style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:1px solid var(--neon-blue); color:var(--text-light); padding:10px; border-radius:4px;"></textarea><button id="save-journal-btn" style="margin-top:10px; background-color:var(--neon-green); color:var(--bg-dark); border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Salvar Entrada</button></div>' },
-        { id: 'moodboard', name: 'Moodboard', icon: '🖼️', defaultColor: 'planet-green', content: '<div class="moodboard"><h3>Moodboard de Inspirações</h3><p style="color:var(--text-medium);">Colecione imagens e ideias.</p><div style="background:rgba(255,255,255,0.1); height:150px; border-radius:4px; display:flex; justify-content:center; align-items:center;"><span>Área de imagens (placeholder)</span></div></div>' },
-    ];
+/* Landing Page */
+#landing-page {
+    background: radial-gradient(circle at center, var(--bg-gradient-start) 0%, var(--bg-dark) 100%);
+    justify-content: space-between;
+    padding: 20px;
+}
 
-    // Cores neon disponíveis para os planetas
-    const neonColors = ['planet-blue', 'planet-green', 'planet-purple'];
+.landing-content {
+    text-align: center;
+    max-width: 900px;
+    width: 90%;
+    margin-top: 50px;
+}
 
-    // Temas disponíveis
-    const themes = [
-        { id: 'dark-neon', name: 'Dark Neon', previewClass: 'dark-neon-preview' },
-        { id: 'blue-galaxy', name: 'Blue Galaxy', previewClass: 'blue-galaxy-preview' },
-        { id: 'green-orbit', name: 'Green Orbit', previewClass: 'green-orbit-preview' },
-    ];
+.logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4em;
+    color: var(--neon-blue);
+    text-shadow: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue);
+    margin-bottom: 20px;
+    animation: pulse-glow 2s infinite alternate;
+}
 
-    // --- Persistência (Local Storage) ---
-    const LOCAL_STORAGE_KEY_PLANETS = 'universyn_planets';
-    const LOCAL_STORAGE_KEY_THEME = 'universyn_theme';
-    const LOCAL_STORAGE_KEY_SAVED_GALAXIES = 'universyn_saved_galaxies';
+.headline {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
+    color: var(--text-light);
+    margin-bottom: 15px;
+}
 
-    function savePlanets() {
-        localStorage.setItem(LOCAL_STORAGE_KEY_PLANETS, JSON.stringify(currentPlanets));
-    }
+.description {
+    font-size: 1.1em;
+    color: var(--text-medium);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
 
-    function loadPlanets() {
-        const savedPlanets = localStorage.getItem(LOCAL_STORAGE_KEY_PLANETS);
-        if (savedPlanets) {
-            currentPlanets = JSON.parse(savedPlanets);
-            const maxId = currentPlanets.reduce((max, p) => {
-                const num = parseInt(p.id.split('-')[1]);
-                return num > max ? num : max;
-            }, 0);
-            planetCounter = maxId;
-        } else {
-            currentPlanets = [
-                { id: 'planet-1', toolId: 'todo-list', x: 200, y: 150, color: 'planet-blue' },
-                { id: 'planet-2', toolId: 'pomodoro', x: 500, y: 100, color: 'planet-green' },
-                { id: 'planet-3', toolId: 'notes', x: 350, y: 400, color: 'planet-purple' },
-                { id: 'planet-4', toolId: 'file-manager', x: 100, y: 300, color: 'planet-green' },
-                { id: 'planet-5', toolId: 'calculator', x: 600, y: 250, color: 'planet-blue' },
-            ];
-            planetCounter = 5;
-        }
-    }
+.cta-button {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3em;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px var(--neon-green);
+}
 
-    function saveTheme(themeId) {
-        localStorage.setItem(LOCAL_STORAGE_KEY_THEME, themeId);
-    }
+.cta-button:hover {
+    background-color: var(--neon-blue);
+    box-shadow: 0 0 20px var(--neon-blue);
+    transform: translateY(-3px);
+}
 
-    function loadTheme() {
-        const savedTheme = localStorage.getItem(LOCAL_STORAGE_KEY_THEME) || 'dark-neon';
-        applyTheme(savedTheme);
-    }
+.preview-universe {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    margin: 50px auto;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
 
-    function applyTheme(themeId) {
-        document.body.classList.remove(...themes.map(t => `theme-${t.id}`));
-        document.body.classList.add(`theme-${themeId}`);
-        saveTheme(themeId);
-    }
+.preview-planet {
+    position: absolute;
+    border-radius: 50%;
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    animation: orbit 15s infinite linear;
+}
 
-    function saveGalaxy(name) {
-        let savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
-        savedGalaxies[name] = JSON.parse(JSON.stringify(currentPlanets));
-        localStorage.setItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES, JSON.stringify(savedGalaxies));
-        alert(`Galáxia "${name}" salva com sucesso!`);
-        renderSavedGalaxiesList();
-    }
+.preview-planet.planet-blue {
+    width: 50px; height: 50px; background-color: var(--neon-blue); top: 20%; left: 10%;
+    animation-delay: 0s;
+}
+.preview-planet.planet-green {
+    width: 40px; height: 40px; background-color: var(--neon-green); top: 60%; left: 70%;
+    animation-delay: 5s;
+}
+.preview-planet.planet-purple {
+    width: 60px; height: 60px; background-color: var(--neon-purple); top: 40%; left: 40%;
+    animation-delay: 10s;
+}
 
-    function loadGalaxy(name) {
-        const savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
-        if (savedGalaxies[name]) {
-            currentPlanets = JSON.parse(JSON.stringify(savedGalaxies[name]));
-            closeAllToolWindows();
-            renderPlanets();
-            alert(`Galáxia "${name}" carregada!`);
-            manageGalaxiesModal.classList.remove('active');
-        } else {
-            alert('Galáxia não encontrada.');
-        }
-    }
+.preview-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    animation: move-particles 60s linear infinite;
+}
 
-    function deleteGalaxy(name) {
-        if (confirm(`Tem certeza que deseja deletar a galáxia "${name}"?`)) {
-            let savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
-            delete savedGalaxies[name];
-            localStorage.setItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES, JSON.stringify(savedGalaxies));
-            renderSavedGalaxiesList();
-            alert(`Galáxia "${name}" deletada.`);
-        }
-    }
+.features-section {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
 
-    function renderSavedGalaxiesList() {
-        savedGalaxiesList.innerHTML = '';
-        const savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
-        const galaxyNames = Object.keys(savedGalaxies);
+.feature-card {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 25px;
+    width: 280px;
+    text-align: left;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
 
-        if (galaxyNames.length === 0) {
-            const li = document.createElement('li');
-            li.textContent = 'Nenhuma galáxia salva ainda.';
-            li.style.color = 'var(--text-medium)';
-            li.style.textAlign = 'center';
-            savedGalaxiesList.appendChild(li);
-            return;
-        }
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--neon-blue);
+}
 
-        galaxyNames.forEach(name => {
-            const li = document.createElement('li');
-            li.className = 'saved-list-item';
-            li.innerHTML = `
-                <span>${name}</span>
-                <div class="actions">
-                    <button class="load-btn" data-galaxy-name="${name}">Carregar</button>
-                    <button class="delete-btn" data-galaxy-name="${name}">&times;</button>
-                </div>
-            `;
-            savedGalaxiesList.appendChild(li);
+.feature-card h3 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+    margin-bottom: 10px;
+    font-size: 1.3em;
+}
 
-            li.querySelector('.load-btn').addEventListener('click', (e) => {
-                loadGalaxy(e.target.dataset.galaxyName);
-            });
-            li.querySelector('.delete-btn').addEventListener('click', (e) => {
-                deleteGalaxy(e.target.dataset.galaxyName);
-            });
-        });
-    }
+.feature-card p {
+    color: var(--text-medium);
+    font-size: 0.95em;
+}
 
-    // --- Funções de Renderização ---
+.landing-footer {
+    margin-top: auto; /* Empurra para o final da página */
+    color: var(--text-medium);
+    font-size: 0.8em;
+}
 
-    function renderPlanets() {
-        galaxyContainer.innerHTML = '';
-        currentPlanets.forEach(planetData => {
-            const tool = allTools.find(t => t.id === planetData.toolId);
-            if (tool) {
-                const planetDiv = document.createElement('div');
-                planetDiv.className = `planet ${planetData.color}`;
-                planetDiv.id = planetData.id;
-                planetDiv.style.left = `${planetData.x}px`;
-                planetDiv.style.top = `${planetData.y}px`;
-                planetDiv.innerHTML = `<span class="icon">${tool.icon}</span><br>${tool.name}`;
-                planetDiv.dataset.toolId = tool.id;
-                galaxyContainer.appendChild(planetDiv);
-            }
-        });
-        savePlanets();
-    }
+/* Universo Personalizável */
+#universe-page {
+    background: radial-gradient(circle at center, var(--bg-gradient-start) 0%, var(--bg-dark) 100%);
+    position: relative;
+    overflow: hidden;
+    display: block; /* Override flex para permitir posicionamento absoluto dos planetas */
+}
 
-    function openToolWindow(toolId, planetId) {
-        const tool = allTools.find(t => t.id === toolId);
-        if (!tool) return;
+.top-bar {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 25px;
+    display: flex;
+    gap: 15px;
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap; /* Para responsividade */
+    justify-content: center; /* Para responsividade */
+}
 
-        const existingWindow = document.querySelector(`.tool-window[data-tool-id="${toolId}"]`);
-        if (existingWindow) {
-            existingWindow.style.zIndex = getNextZIndex();
-            existingWindow.classList.add('active');
-            return;
-        }
+.top-bar-btn {
+    background: none;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
 
-        const toolWindow = document.createElement('div');
-        toolWindow.className = 'tool-window';
-        toolWindow.dataset.toolId = toolId;
-        toolWindow.dataset.planetId = planetId;
+.top-bar-btn:hover {
+    background-color: var(--neon-blue);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px var(--neon-blue);
+}
 
-        const planetElement = document.getElementById(planetId);
-        if (planetElement) {
-            const rect = planetElement.getBoundingClientRect();
-            let initialLeft = rect.left + rect.width / 2 - 150;
-            let initialTop = rect.top + rect.height / 2 - 100;
+#galaxy-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: move-particles 120s linear infinite;
+}
 
-            initialLeft = Math.max(20, Math.min(initialLeft, window.innerWidth - 320));
-            initialTop = Math.max(20, Math.min(initialTop, window.innerHeight - 220));
+/* Planetas */
+.planet {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    cursor: grab;
+    display: flex;
+    flex-direction: column; /* Para ícone e texto */
+    justify-content: center;
+    align-items: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8em;
+    text-align: center;
+    color: var(--planet-text-color); /* Cor do texto do planeta */
+    box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    transition: box-shadow 0.3s ease, transform 0.1s ease;
+    z-index: 10; /* Para ficar acima do fundo */
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.3)); /* Gradiente suave */
+}
 
-            toolWindow.style.left = `${initialLeft}px`;
-            toolWindow.style.top = `${initialTop}px`;
-        } else {
-            toolWindow.style.left = 'calc(50% - 150px)';
-            toolWindow.style.top = 'calc(50% - 100px)';
-        }
-        toolWindow.style.zIndex = getNextZIndex();
+.planet .icon {
+    font-size: 2em; /* Tamanho do ícone dentro do planeta */
+    margin-bottom: 5px;
+}
 
-        toolWindow.innerHTML = `
-            <div class="tool-window-header">
-                <span>${tool.name}</span>
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="tool-window-content ${toolId}">
-                ${tool.content}
-            </div>
-        `;
-        universePage.appendChild(toolWindow);
+.planet:active {
+    cursor: grabbing;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+}
 
-        setTimeout(() => toolWindow.classList.add('active'), 10);
+.planet.planet-blue { background-color: var(--neon-blue); }
+.planet.planet-green { background-color: var(--neon-green); }
+.planet.planet-purple { background-color: var(--neon-purple); }
 
-        toolWindow.querySelector('.close-btn').addEventListener('click', () => {
-            toolWindow.classList.remove('active');
-            setTimeout(() => toolWindow.remove(), 300);
-            if (activeToolWindow === toolWindow) activeToolWindow = null;
-        });
+/* Janelas de Ferramentas */
+.tool-window {
+    position: absolute;
+    background-color: rgba(13, 13, 13, 0.95);
+    border: 1px solid var(--neon-blue);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(92, 225, 230, 0.5);
+    min-width: 300px;
+    min-height: 200px;
+    resize: both; /* Permite redimensionar */
+    overflow: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
 
-        toolWindow.querySelector('.tool-window-header').addEventListener('mousedown', (e) => {
-            isDraggingWindow = true;
-            currentDraggedWindow = toolWindow;
-            initialWindowMouseX = e.clientX;
-            initialWindowMouseY = e.clientY;
-            initialWindowX = toolWindow.offsetLeft;
-            initialWindowY = toolWindow.offsetTop;
-            currentDraggedWindow.style.zIndex = getNextZIndex();
-            currentDraggedWindow.style.cursor = 'grabbing';
-        });
+.tool-window.active {
+    opacity: 1;
+    transform: scale(1);
+}
 
-        toolWindow.addEventListener('mousedown', () => {
-            toolWindow.style.zIndex = getNextZIndex();
-        });
+.tool-window-header {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px 15px;
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--neon-blue);
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+}
 
-        initializeToolFunctionality(toolId, toolWindow);
-    }
+.tool-window-header .close-btn {
+    background: none;
+    border: none;
+    color: var(--neon-blue);
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
 
-    function getNextZIndex() {
-        let maxZ = 0;
-        document.querySelectorAll('.tool-window').forEach(win => {
-           
+.tool-window-header .close-btn:hover {
+    color: var(--neon-green);
+}
+
+.tool-window-content {
+    padding: 15px;
+    flex-grow: 1;
+    color: var(--text-light);
+}
+
+/* Estilos específicos para ferramentas (exemplo) */
+.tool-window-content.todo-list ul {
+    list-style: none;
+}
+.tool-window-content.todo-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.tool-window-content.todo-list input[type="checkbox"] {
+    margin-right: 10px;
+    accent-color: var(--neon-green);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+.tool-window-content.todo-list input[type="text"] {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    padding: 8px;
+    border-radius: 4px;
+    width: calc(100% - 20px);
+    margin-top: 10px;
+}
+.tool-window-content.todo-list .add-task-btn {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+.tool-window-content.todo-list .add-task-btn:hover {
+    background-color: var(--neon-blue);
+}
+.tool-window-content.todo-list .delete-task-btn {
+    background: none;
+    border: none;
+    color: var(--text-medium);
+    font-size: 1.2em;
+    margin-left: auto;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+.tool-window-content.todo-list .delete-task-btn:hover {
+    color: red;
+}
+
+/* Pomodoro */
+.tool-window-content.pomodoro {
+    text-align: center;
+}
+.tool-window-content.pomodoro #pomodoro-timer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3em;
+    color: var(--neon-green);
+    margin: 20px 0;
+    text-shadow: 0 0 10px var(--neon-green);
+}
+.tool-window-content.pomodoro .pomodoro-btn {
+    background-color: var(--neon-purple);
+    color: var(--bg-dark);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.tool-window-content.pomodoro .pomodoro-btn:hover {
+    background-color: var(--neon-blue);
+}
+
+/* Calculadora */
+.tool-window-content.calculator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.tool-window-content.calculator .calc-display {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 1.8em;
+    text-align: right;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    border-radius: 5px;
+}
+.tool-window-content.calculator .calc-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 90%;
+}
+.tool-window-content.calculator .calc-buttons button {
+    background-color: rgba(255,255,255,0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--text-light);
+    padding: 15px;
+    font-size: 1.2em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.tool-window-content.calculator .calc-buttons button:hover {
+    background-color: rgba(255,255,255,0.2);
+    border-color: var(--neon-green);
+}
+.tool-window-content.calculator .calc-buttons button.op {
+    background-color: var(--neon-purple);
+    color: var(--bg-dark);
+}
+.tool-window-content.calculator .calc-buttons button.op:hover {
+    background-color: var(--neon-blue);
+}
+.tool-window-content.calculator .calc-buttons button.eq {
+    background-color: var(--neon-green);
+    color: var(--bg-dark);
+    grid-column: span 2;
+}
+.tool-window-content.calculator .calc-buttons button.eq:hover {
+    background-color: var(--neon-blue);
+}
+
+/* Gerenciador de Arquivos */
+.tool-window-content.file-manager .file-list {
+    list-style: none;
+    padding: 0;
+}
+.tool-window-content.file-manager .file-item {
+    background-color: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.tool-window-content.file-manager .file-item a {
+    color: var(--neon-blue);
