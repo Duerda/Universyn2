@@ -669,6 +669,354 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Arrastar planetas
+// Arrastar planetas
     galaxyContainer.addEventListener('mousedown', (e) => {
-        if (e
+        if (e.target.closest('.planet')) {
+            const planet = e.target.closest('.planet');
+            isDraggingPlanet = true;
+            currentDraggedPlanet = planet;
+            initialMouseX = e.clientX;
+            initialMouseY = e.clientY;
+            initialPlanetX = planet.offsetLeft;
+            initialPlanetY = planet.offsetTop;
+            planet.style.cursor = 'grabbing';
+            planet.style.zIndex = '1000';
+        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDraggingPlanet && currentDraggedPlanet) {
+            const deltaX = e.clientX - initialMouseX;
+            const deltaY = e.clientY - initialMouseY;
+            const newX = initialPlanetX + deltaX;
+            const newY = initialPlanetY + deltaY;
+            
+            currentDraggedPlanet.style.left = `${newX}px`;
+            currentDraggedPlanet.style.top = `${newY}px`;
+        }
+        
+        if (isDraggingWindow && currentDraggedWindow) {
+            const deltaX = e.clientX - initialWindowMouseX;
+            const deltaY = e.clientY - initialWindowMouseY;
+            const newX = initialWindowX + deltaX;
+            const newY = initialWindowY + deltaY;
+            
+            currentDraggedWindow.style.left = `${newX}px`;
+            currentDraggedWindow.style.top = `${newY}px`;
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDraggingPlanet && currentDraggedPlanet) {
+            const planetId = currentDraggedPlanet.id;
+            const planetData = currentPlanets.find(p => p.id === planetId);
+            if (planetData) {
+                planetData.x = currentDraggedPlanet.offsetLeft;
+                planetData.y = currentDraggedPlanet.offsetTop;
+                savePlanets();
+            }
+            currentDraggedPlanet.style.cursor = 'pointer';
+            currentDraggedPlanet.style.zIndex = '';
+            isDraggingPlanet = false;
+            currentDraggedPlanet = null;
+        }
+        
+        if (isDraggingWindow && currentDraggedWindow) {
+            currentDraggedWindow.style.cursor = '';
+            isDraggingWindow = false;
+            currentDraggedWindow = null;
+        }
+    });
+
+    // Clique nos planetas
+    galaxyContainer.addEventListener('click', (e) => {
+        if (e.target.closest('.planet') && !isDraggingPlanet) {
+            const planet = e.target.closest('.planet');
+            const toolId = planet.dataset.toolId;
+            const planetId = planet.id;
+            openToolWindow(toolId, planetId);
+        }
+    });
+
+    // Menu de contexto nos planetas
+    galaxyContainer.addEventListener('contextmenu', (e) => {
+        if (e.target.closest('.planet')) {
+            e.preventDefault();
+            const planet = e.target.closest('.planet');
+            targetPlanetForColorChange = planet;
+            
+            contextMenu.style.left = `${e.clientX}px`;
+            contextMenu.style.top = `${e.clientY}px`;
+            contextMenu.classList.add('active');
+        }
+    });
+
+    // Fechar menu de contexto
+    document.addEventListener('click', (e) => {
+        if (!contextMenu.contains(e.target)) {
+            contextMenu.classList.remove('active');
+        }
+    });
+
+    // Opções do menu de contexto
+    contextMenu.addEventListener('click', (e) => {
+        if (e.target.dataset.action === 'change-color') {
+            renderColorPalette();
+            changeColorModal.classList.add('active');
+        } else if (e.target.dataset.action === 'delete-planet') {
+            if (targetPlanetForColorChange && confirm('Tem certeza que deseja deletar este planeta?')) {
+                const planetId = targetPlanetForColorChange.id;
+                currentPlanets = currentPlanets.filter(p => p.id !== planetId);
+                renderPlanets();
+                
+                // Fechar janela da ferramenta se estiver aberta
+                const toolWindow = document.querySelector(`.tool-window[data-planet-id="${planetId}"]`);
+                if (toolWindow) {
+                    toolWindow.classList.remove('active');
+                    setTimeout(() => toolWindow.remove(), 300);
+                }
+            }
+        }
+        contextMenu.classList.remove('active');
+    });
+
+    // Funções de renderização dos modais
+    function renderAvailableTools() {
+        availableToolsList.innerHTML = '';
+        const usedToolIds = currentPlanets.map(p => p.toolId);
+        const availableTools = allTools.filter(tool => !usedToolIds.includes(tool.id));
+        
+        if (availableTools.length === 0) {
+            availableToolsList.innerHTML = '<p style="text-align: center; color: var(--text-medium);">Todas as ferramentas já foram adicionadas!</p>';
+            return;
+        }
+        
+        availableTools.forEach(tool => {
+            const toolDiv = document.createElement('div');
+            toolDiv.className = 'tool-option';
+            toolDiv.innerHTML = `
+                <div class="tool-icon">${tool.icon}</div>
+                <div class="tool-name">${tool.name}</div>
+            `;
+            toolDiv.addEventListener('click', () => {
+                addPlanetFromTool(tool);
+                addPlanetModal.classList.remove('active');
+            });
+            availableToolsList.appendChild(toolDiv);
+        });
+    }
+
+    function addPlanetFromTool(tool) {
+        planetCounter++;
+        const newPlanet = {
+            id: `planet-${planetCounter}`,
+            toolId: tool.id,
+            x: Math.random() * (galaxyContainer.clientWidth - 100),
+            y: Math.random() * (galaxyContainer.clientHeight - 100),
+            color: tool.defaultColor
+        };
+        currentPlanets.push(newPlanet);
+        renderPlanets();
+    }
+
+    function renderColorPalette() {
+        colorPalette.innerHTML = '';
+        neonColors.forEach(color => {
+            const colorDiv = document.createElement('div');
+            colorDiv.className = `color-option ${color}`;
+            colorDiv.addEventListener('click', () => {
+                if (targetPlanetForColorChange) {
+                    const planetId = targetPlanetForColorChange.id;
+                    const planetData = currentPlanets.find(p => p.id === planetId);
+                    if (planetData) {
+                        planetData.color = color;
+                        targetPlanetForColorChange.className = `planet ${color}`;
+                        savePlanets();
+                    }
+                }
+                changeColorModal.classList.remove('active');
+            });
+            colorPalette.appendChild(colorDiv);
+        });
+    }
+
+    function renderThemeOptions() {
+        themeOptionsContainer.innerHTML = '';
+        themes.forEach(theme => {
+            const themeDiv = document.createElement('div');
+            themeDiv.className = 'theme-option';
+            themeDiv.innerHTML = `
+                <div class="theme-preview ${theme.previewClass}"></div>
+                <div class="theme-name">${theme.name}</div>
+            `;
+            themeDiv.addEventListener('click', () => {
+                applyTheme(theme.id);
+                changeThemeModal.classList.remove('active');
+            });
+            themeOptionsContainer.appendChild(themeDiv);
+        });
+    }
+
+    // Teclas de atalho
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            // Salvar galáxia atual
+            const name = prompt('Digite o nome da galáxia:');
+            if (name) {
+                saveGalaxy(name);
+            }
+        }
+        
+        if (e.key === 'Escape') {
+            // Fechar modais
+            document.querySelectorAll('.modal.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            
+            // Fechar menu de contexto
+            contextMenu.classList.remove('active');
+        }
+    });
+
+    // Redimensionamento da janela
+    window.addEventListener('resize', () => {
+        // Ajustar posições das janelas de ferramentas para não saírem da tela
+        document.querySelectorAll('.tool-window').forEach(toolWindow => {
+            const rect = toolWindow.getBoundingClientRect();
+            let newLeft = toolWindow.offsetLeft;
+            let newTop = toolWindow.offsetTop;
+            
+            if (rect.right > window.innerWidth) {
+                newLeft = window.innerWidth - rect.width - 20;
+            }
+            if (rect.bottom > window.innerHeight) {
+                newTop = window.innerHeight - rect.height - 20;
+            }
+            if (newLeft < 0) newLeft = 20;
+            if (newTop < 0) newTop = 20;
+            
+            toolWindow.style.left = `${newLeft}px`;
+            toolWindow.style.top = `${newTop}px`;
+        });
+    });
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPlanets();
+        loadTheme();
+        renderPlanets();
+        renderSavedGalaxiesList();
+    });
+
+    // Animações de partículas (opcional)
+    function createParticles() {
+        if (!animationsEnabled) return;
+        
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.animationDuration = `${Math.random() * 3 + 2}s`;
+        
+        document.body.appendChild(particle);
+        
+        setTimeout(() => {
+            particle.remove();
+        }, 5000);
+    }
+
+    // Criar partículas periodicamente
+    setInterval(createParticles, 2000);
+
+    // Efeitos de hover nos planetas
+    galaxyContainer.addEventListener('mouseenter', (e) => {
+        if (e.target.closest('.planet')) {
+            const planet = e.target.closest('.planet');
+            planet.style.transform = 'scale(1.1)';
+        }
+    }, true);
+
+    galaxyContainer.addEventListener('mouseleave', (e) => {
+        if (e.target.closest('.planet')) {
+            const planet = e.target.closest('.planet');
+            planet.style.transform = 'scale(1)';
+        }
+    }, true);
+
+    // Salvar automaticamente a cada 30 segundos
+    setInterval(() => {
+        savePlanets();
+    }, 30000);
+
+    // Notificações (simuladas)
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: var(--bg-light);
+            border: 1px solid var(--neon-blue);
+            border-radius: 4px;
+            color: var(--text-light);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Exportar/Importar configurações (placeholder)
+    function exportGalaxyConfig() {
+        const config = {
+            planets: currentPlanets,
+            theme: currentTheme,
+            savedGalaxies: savedGalaxies
+        };
+        
+        const dataStr = JSON.stringify(config, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = 'galaxy-config.json';
+        downloadLink.click();
+        
+        URL.revokeObjectURL(url);
+        showNotification('Configuração exportada com sucesso!', 'success');
+    }
+
+    function importGalaxyConfig(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const config = JSON.parse(e.target.result);
+                if (config.planets) currentPlanets = config.planets;
+                if (config.theme) applyTheme(config.theme);
+                if (config.savedGalaxies) savedGalaxies = config.savedGalaxies;
+                
+                renderPlanets();
+                renderSavedGalaxiesList();
+                showNotification('Configuração importada com sucesso!', 'success');
+            } catch (error) {
+                showNotification('Erro ao importar configuração!', 'error');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Adicionar botões de exportar/importar (se necessário)
+    // Isso poderia ser adicionado à interface posteriormente
+
+    console.log('Galaxy Workspace inicializado com sucesso!');
+});
