@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let planetCounter = 0;
     let targetPlanetForColorChange = null;
+    let currentPlanets = [];
+    let animationsEnabled = true;
 
     // --- Dados das Ferramentas ---
     const allTools = [
@@ -70,19 +72,18 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'green-orbit', name: 'Green Orbit', previewClass: 'green-orbit-preview' },
     ];
 
-    // --- Persistência (Local Storage) ---
-    const LOCAL_STORAGE_KEY_PLANETS = 'universyn_planets';
-    const LOCAL_STORAGE_KEY_THEME = 'universyn_theme';
-    const LOCAL_STORAGE_KEY_SAVED_GALAXIES = 'universyn_saved_galaxies';
+    // --- Persistência (Variáveis em memória) ---
+    let savedPlanets = [];
+    let currentTheme = 'dark-neon';
+    let savedGalaxies = {};
 
     function savePlanets() {
-        localStorage.setItem(LOCAL_STORAGE_KEY_PLANETS, JSON.stringify(currentPlanets));
+        savedPlanets = JSON.parse(JSON.stringify(currentPlanets));
     }
 
     function loadPlanets() {
-        const savedPlanets = localStorage.getItem(LOCAL_STORAGE_KEY_PLANETS);
-        if (savedPlanets) {
-            currentPlanets = JSON.parse(savedPlanets);
+        if (savedPlanets.length > 0) {
+            currentPlanets = JSON.parse(JSON.stringify(savedPlanets));
             const maxId = currentPlanets.reduce((max, p) => {
                 const num = parseInt(p.id.split('-')[1]);
                 return num > max ? num : max;
@@ -101,12 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function saveTheme(themeId) {
-        localStorage.setItem(LOCAL_STORAGE_KEY_THEME, themeId);
+        currentTheme = themeId;
     }
 
     function loadTheme() {
-        const savedTheme = localStorage.getItem(LOCAL_STORAGE_KEY_THEME) || 'dark-neon';
-        applyTheme(savedTheme);
+        applyTheme(currentTheme);
     }
 
     function applyTheme(themeId) {
@@ -116,15 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function saveGalaxy(name) {
-        let savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
         savedGalaxies[name] = JSON.parse(JSON.stringify(currentPlanets));
-        localStorage.setItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES, JSON.stringify(savedGalaxies));
         alert(`Galáxia "${name}" salva com sucesso!`);
         renderSavedGalaxiesList();
     }
 
     function loadGalaxy(name) {
-        const savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
         if (savedGalaxies[name]) {
             currentPlanets = JSON.parse(JSON.stringify(savedGalaxies[name]));
             closeAllToolWindows();
@@ -138,9 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function deleteGalaxy(name) {
         if (confirm(`Tem certeza que deseja deletar a galáxia "${name}"?`)) {
-            let savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
             delete savedGalaxies[name];
-            localStorage.setItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES, JSON.stringify(savedGalaxies));
             renderSavedGalaxiesList();
             alert(`Galáxia "${name}" deletada.`);
         }
@@ -148,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderSavedGalaxiesList() {
         savedGalaxiesList.innerHTML = '';
-        const savedGalaxies = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY_SAVED_GALAXIES)) || {};
         const galaxyNames = Object.keys(savedGalaxies);
 
         if (galaxyNames.length === 0) {
@@ -274,4 +268,407 @@ document.addEventListener('DOMContentLoaded', () => {
     function getNextZIndex() {
         let maxZ = 0;
         document.querySelectorAll('.tool-window').forEach(win => {
-           
+            const z = parseInt(win.style.zIndex) || 0;
+            if (z > maxZ) maxZ = z;
+        });
+        return maxZ + 1;
+    }
+
+    function initializeToolFunctionality(toolId, toolWindow) {
+        switch (toolId) {
+            case 'todo-list':
+                initializeTodoList(toolWindow);
+                break;
+            case 'pomodoro':
+                initializePomodoro(toolWindow);
+                break;
+            case 'calculator':
+                initializeCalculator(toolWindow);
+                break;
+            case 'file-manager':
+                initializeFileManager(toolWindow);
+                break;
+            case 'converters':
+                initializeConverters(toolWindow);
+                break;
+            case 'daily-journal':
+                initializeDailyJournal(toolWindow);
+                break;
+        }
+    }
+
+    function initializeTodoList(toolWindow) {
+        const input = toolWindow.querySelector('#new-todo-input');
+        const addBtn = toolWindow.querySelector('.add-task-btn');
+        const todoList = toolWindow.querySelector('#todo-items');
+
+        function addTodo() {
+            const text = input.value.trim();
+            if (text) {
+                const li = document.createElement('li');
+                li.className = 'todo-item';
+                li.innerHTML = `
+                    <input type="checkbox">
+                    <span>${text}</span>
+                    <button class="delete-todo">&times;</button>
+                `;
+                todoList.appendChild(li);
+                input.value = '';
+
+                li.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
+                    li.classList.toggle('completed', e.target.checked);
+                });
+
+                li.querySelector('.delete-todo').addEventListener('click', () => {
+                    li.remove();
+                });
+            }
+        }
+
+        addBtn.addEventListener('click', addTodo);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTodo();
+        });
+    }
+
+    function initializePomodoro(toolWindow) {
+        const timerDisplay = toolWindow.querySelector('#pomodoro-timer');
+        const buttons = toolWindow.querySelectorAll('.pomodoro-btn');
+        let minutes = 25;
+        let seconds = 0;
+        let isRunning = false;
+        let intervalId = null;
+
+        function updateDisplay() {
+            const min = minutes.toString().padStart(2, '0');
+            const sec = seconds.toString().padStart(2, '0');
+            timerDisplay.textContent = `${min}:${sec}`;
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                intervalId = setInterval(() => {
+                    if (seconds === 0) {
+                        if (minutes === 0) {
+                            // Timer finished
+                            isRunning = false;
+                            clearInterval(intervalId);
+                            alert('Pomodoro finalizado!');
+                            minutes = 25;
+                            seconds = 0;
+                        } else {
+                            minutes--;
+                            seconds = 59;
+                        }
+                    } else {
+                        seconds--;
+                    }
+                    updateDisplay();
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(intervalId);
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(intervalId);
+            minutes = 25;
+            seconds = 0;
+            updateDisplay();
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                switch (action) {
+                    case 'start':
+                        startTimer();
+                        break;
+                    case 'pause':
+                        pauseTimer();
+                        break;
+                    case 'reset':
+                        resetTimer();
+                        break;
+                }
+            });
+        });
+    }
+
+    function initializeCalculator(toolWindow) {
+        const display = toolWindow.querySelector('.calc-display');
+        const buttons = toolWindow.querySelectorAll('.calc-buttons button');
+        let currentInput = '0';
+        let previousInput = '';
+        let operation = '';
+        let shouldResetDisplay = false;
+
+        function updateDisplay() {
+            display.value = currentInput;
+        }
+
+        function handleNumber(number) {
+            if (shouldResetDisplay) {
+                currentInput = '';
+                shouldResetDisplay = false;
+            }
+            currentInput = currentInput === '0' ? number : currentInput + number;
+            updateDisplay();
+        }
+
+        function handleOperation(op) {
+            if (previousInput !== '' && operation !== '' && !shouldResetDisplay) {
+                calculate();
+            }
+            previousInput = currentInput;
+            operation = op;
+            shouldResetDisplay = true;
+        }
+
+        function calculate() {
+            let result;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operation) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            currentInput = result.toString();
+            operation = '';
+            previousInput = '';
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function clear() {
+            currentInput = '0';
+            previousInput = '';
+            operation = '';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const text = btn.textContent;
+
+                if (text >= '0' && text <= '9') {
+                    handleNumber(text);
+                } else if (text === '.') {
+                    if (currentInput.indexOf('.') === -1) {
+                        currentInput += '.';
+                        updateDisplay();
+                    }
+                } else if (text === 'C') {
+                    clear();
+                } else if (text === '←') {
+                    backspace();
+                } else if (text === '=') {
+                    calculate();
+                } else if (['+', '-', '*', '/', '%'].includes(text)) {
+                    handleOperation(text);
+                }
+            });
+        });
+    }
+
+    function initializeFileManager(toolWindow) {
+        const fileList = toolWindow.querySelector('.file-list');
+        const input = toolWindow.querySelector('#new-file-name');
+        const addBtn = toolWindow.querySelector('#add-file-btn');
+        let files = [];
+
+        function addFile() {
+            const fileName = input.value.trim();
+            if (fileName) {
+                files.push(fileName);
+                renderFileList();
+                input.value = '';
+            }
+        }
+
+        function renderFileList() {
+            fileList.innerHTML = '';
+            files.forEach((fileName, index) => {
+                const li = document.createElement('li');
+                li.className = 'file-item';
+                li.innerHTML = `
+                    <span>${fileName}</span>
+                    <button class="delete-file">&times;</button>
+                `;
+                fileList.appendChild(li);
+
+                li.querySelector('.delete-file').addEventListener('click', () => {
+                    files.splice(index, 1);
+                    renderFileList();
+                });
+            });
+        }
+
+        addBtn.addEventListener('click', addFile);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addFile();
+        });
+    }
+
+    function initializeConverters(toolWindow) {
+        const typeSelect = toolWindow.querySelector('#converter-type');
+        const input = toolWindow.querySelector('#converter-input');
+        const result = toolWindow.querySelector('#converter-result');
+
+        function convert() {
+            const type = typeSelect.value;
+            const value = parseFloat(input.value);
+
+            if (isNaN(value)) {
+                result.textContent = 'Valor inválido';
+                return;
+            }
+
+            switch (type) {
+                case 'temp':
+                    result.textContent = `${((value * 9/5) + 32).toFixed(2)}°F`;
+                    break;
+                case 'weight':
+                    result.textContent = `${(value * 2.205).toFixed(2)} lbs`;
+                    break;
+                case 'currency':
+                    result.textContent = 'Funcionalidade em desenvolvimento';
+                    break;
+            }
+        }
+
+        input.addEventListener('input', convert);
+        typeSelect.addEventListener('change', convert);
+    }
+
+    function initializeDailyJournal(toolWindow) {
+        const textarea = toolWindow.querySelector('#journal-entry');
+        const saveBtn = toolWindow.querySelector('#save-journal-btn');
+
+        saveBtn.addEventListener('click', () => {
+            const content = textarea.value.trim();
+            if (content) {
+                alert('Entrada do diário salva!');
+                // Aqui você poderia implementar lógica para salvar no armazenamento
+            }
+        });
+    }
+
+    function closeAllToolWindows() {
+        document.querySelectorAll('.tool-window').forEach(window => {
+            window.classList.remove('active');
+            setTimeout(() => window.remove(), 300);
+        });
+    }
+
+    // --- Event Listeners ---
+
+    // Navegação entre páginas
+    enterUniverseBtn.addEventListener('click', () => {
+        landingPage.classList.remove('active');
+        universePage.classList.add('active');
+    });
+
+    backToLandingBtn.addEventListener('click', () => {
+        universePage.classList.remove('active');
+        landingPage.classList.add('active');
+        closeAllToolWindows();
+    });
+
+    // Botões da barra superior
+    addPlanetBtn.addEventListener('click', () => {
+        renderAvailableTools();
+        addPlanetModal.classList.add('active');
+    });
+
+    resetGalaxyBtn.addEventListener('click', () => {
+        if (confirm('Tem certeza que deseja resetar a galáxia?')) {
+            currentPlanets = [];
+            closeAllToolWindows();
+            renderPlanets();
+        }
+    });
+
+    toggleAnimationsBtn.addEventListener('click', () => {
+        animationsEnabled = !animationsEnabled;
+        if (animationsEnabled) {
+            document.body.classList.remove('no-animations');
+        } else {
+            document.body.classList.add('no-animations');
+        }
+    });
+
+    changeThemeBtn.addEventListener('click', () => {
+        renderThemeOptions();
+        changeThemeModal.classList.add('active');
+    });
+
+    saveGalaxyBtn.addEventListener('click', () => {
+        renderSavedGalaxiesList();
+        manageGalaxiesModal.classList.add('active');
+    });
+
+    loadGalaxyBtn.addEventListener('click', () => {
+        renderSavedGalaxiesList();
+        manageGalaxiesModal.classList.add('active');
+    });
+
+    // Salvar nova galáxia
+    confirmSaveGalaxyBtn.addEventListener('click', () => {
+        const name = saveGalaxyNameInput.value.trim();
+        if (name) {
+            saveGalaxy(name);
+            saveGalaxyNameInput.value = '';
+        }
+    });
+
+    // Fechar modais
+    [closeModalBtnAddPlanet, closeModalBtnChangeColor, closeModalBtnChangeTheme, closeModalBtnManageGalaxies].forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.closest('.modal').classList.remove('active');
+        });
+    });
+
+    // Fechar modais clicando fora
+    [addPlanetModal, changeColorModal, changeThemeModal, manageGalaxiesModal].forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+
+    // Arrastar planetas
+    galaxyContainer.addEventListener('mousedown', (e) => {
+        if (e
